@@ -1,0 +1,4 @@
+package com.lms.LearningManagementSystem.controller;
+
+public class HomeController {
+}
