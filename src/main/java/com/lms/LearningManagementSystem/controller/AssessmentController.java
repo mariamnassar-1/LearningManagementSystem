@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 @RestController
@@ -24,6 +25,7 @@ public class AssessmentController {
     @Autowired
     private QuizService quizService;
     @PostMapping("/questions")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public Question addQuestion(@RequestBody Question question) {
         return questionService.saveQuestion(question);
     }
@@ -34,21 +36,25 @@ public class AssessmentController {
     }
 
     @PostMapping("/assignments")
+    @PreAuthorize("hasRole('STUDENT')")
     public Assignment submitAssignment(@RequestBody Assignment assignment) {
         return assignmentService.saveAssignment(assignment);
     }
 
     @PostMapping("/assignments/{id}/grade")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public Assignment gradeAssignment(@PathVariable Long id, @RequestParam Double grade, @RequestParam String feedback) {
         return assignmentService.gradeAssignment(id, grade, feedback);
     }
 
     @GetMapping("/assignments")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public List<Assignment> getAllAssignments() {
         return assignmentService.getAllAssignments();
     }
 
     @PostMapping("/quizzes")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public Quiz addQuiz(@RequestBody Quiz quiz) {
         return quizService.saveQuiz(quiz);
     }
@@ -64,10 +70,12 @@ public class AssessmentController {
     }
 
     @PutMapping("/quizzes/{id}")
+
     public ResponseEntity<Quiz> updateQuiz(@PathVariable Long id, @RequestBody Quiz updatedQuiz) {
         Quiz quiz = quizService.updateQuiz(id, updatedQuiz);
         return ResponseEntity.ok(quiz);
     }
+//done
 
 
 }
