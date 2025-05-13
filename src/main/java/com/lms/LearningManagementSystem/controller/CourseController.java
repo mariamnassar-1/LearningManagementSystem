@@ -46,10 +46,11 @@ public class CourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #id) ")
-    public ResponseEntity<Course> createCourse(@RequestBody Course course, User instructor) {
-        //pass the instructor's id to the course
-        instructor.setUsername(instructor.getUsername());
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<Course> createCourse(@RequestBody Course course, Authentication authentication) {
+        // Set the instructor from the authenticated user
+        User instructor = new User();
+        instructor.setUsername(authentication.getName());
         course.setInstructor(instructor);
 
         Course createdCourse = courseService.createCourse(course);
