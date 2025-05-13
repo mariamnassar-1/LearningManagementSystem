@@ -5,12 +5,14 @@ import com.lms.LearningManagementSystem.model.Lesson;
 import com.lms.LearningManagementSystem.model.User;
 import com.lms.LearningManagementSystem.service.CourseService;
 import com.lms.LearningManagementSystem.service.UserService;
-import org.apache.tomcat.util.file.ConfigurationSource;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -156,9 +158,15 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}/students")
-    @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #id) or hasRole('ADMIN')")
-    public ResponseEntity<List<String>> getEnrolledStudents(@PathVariable Long courseId) {
-        return ResponseEntity.ok(courseService.getEnrolledStudents(courseId));
+    @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #courseId) or hasRole('ADMIN')")
+    public ResponseEntity<?> getEnrolledStudents(@PathVariable Long courseId) {
+        try {
+            return ResponseEntity.ok(courseService.getEnrolledStudents(courseId));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+        }
     }
 
 //    @PostMapping("/{courseId}/addstudents")

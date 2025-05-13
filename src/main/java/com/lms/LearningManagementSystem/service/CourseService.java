@@ -179,7 +179,6 @@ public class CourseService {
         return otp.equals(lesson.getOtp());
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal, #courseId)")
     public List<String> getEnrolledStudents(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
