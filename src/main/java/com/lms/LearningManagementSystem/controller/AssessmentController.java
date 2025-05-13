@@ -70,7 +70,7 @@ public class AssessmentController {
     }
 
     @PutMapping("/quizzes/{id}")
-    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
+
     public ResponseEntity<Quiz> updateQuiz(@PathVariable Long id, @RequestBody Quiz updatedQuiz) {
         Quiz quiz = quizService.updateQuiz(id, updatedQuiz);
         return ResponseEntity.ok(quiz);
