@@ -91,37 +91,6 @@ public class CourseService {
         return courseRepository.findByInstructorUsername(instructorUsername);
     }
 
-    @PreAuthorize("hasRole('STUDENT')")
-    public List<Course> getEnrolledCourses(String username) {
-        return courseRepository.findByEnrolledStudentsContaining(username);
-    }
-
-    @PreAuthorize("hasRole('STUDENT')")
-    public void enrollStudent(Long courseId, String username) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
-
-        if (course.getEnrolledStudents().contains(username)) {
-            throw new IllegalArgumentException("Student is already enrolled in this course");
-        }
-
-        course.getEnrolledStudents().add(username);
-        courseRepository.save(course);
-    }
-
-    @PreAuthorize("hasRole('STUDENT')")
-    public void unenrollStudent(Long courseId, String username) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
-
-        if (!course.getEnrolledStudents().contains(username)) {
-            throw new IllegalArgumentException("Student is not enrolled in this course");
-        }
-
-        course.getEnrolledStudents().remove(username);
-        courseRepository.save(course);
-    }
-
     public Course uploadMediaFiles(Long courseId, List<MultipartFile> files) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
@@ -178,23 +147,6 @@ public class CourseService {
 
         return otp.equals(lesson.getOtp());
     }
-
-    public List<String> getEnrolledStudents(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        return course.getEnrolledStudents().stream().collect(Collectors.toList());
-    }
-
-//    public Course addStudentsToCourse(Long courseId, List<String> studentUsernames) {
-//        Course course = courseRepository.findById(courseId)
-//                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
-//
-//        // Add students to the course
-//        course.getEnrolledStudents().addAll(studentUsernames);
-//
-//        // Save the updated course
-//        return courseRepository.save(course);
-//    }
 
     public Course addLessonsToCourse(Long courseId, List<Lesson> lessons) {
         Course course = courseRepository.findById(courseId)
