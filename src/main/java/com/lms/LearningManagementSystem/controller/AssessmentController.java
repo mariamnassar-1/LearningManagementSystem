@@ -73,6 +73,5 @@ public class AssessmentController {
     public ResponseEntity<Quiz> updateQuiz(@PathVariable Long id, @RequestBody Quiz updatedQuiz) {
         Quiz quiz = quizService.updateQuiz(id, updatedQuiz);
         return ResponseEntity.ok(quiz);
-
     }
 }
