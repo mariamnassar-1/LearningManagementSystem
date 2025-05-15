@@ -37,12 +37,11 @@ public class CourseService {
     private UserService userService;
     @Autowired
     private  NotificationService notificationService;
+
     @Value("${media.storage.path}") // Define a property in application.properties
     private String mediaStoragePath;
 
-    @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #courseId) or hasRole('ADMIN')")
     public Course createCourse(Course course) {
-
         // Get the instructor from the database
         User instructor = userRepository.findByUsername(course.getInstructor().getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Instructor not found"));

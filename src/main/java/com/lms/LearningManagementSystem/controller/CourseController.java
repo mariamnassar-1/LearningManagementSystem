@@ -11,9 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
@@ -44,20 +42,29 @@ public class CourseController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // FIXED: Improved error handling and instructor validation
     @PostMapping
     @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<Course> createCourse(@RequestBody Course course, Authentication authentication) {
-        // Set the instructor from the authenticated user
-        User instructor = new User();
-        instructor.setUsername(authentication.getName());
-        course.setInstructor(instructor);
+    public ResponseEntity<?> createCourse(@RequestBody Course course, Principal principal) {
+        String username = principal.getName();
+        User instructor = userService.findByUsername(username);
 
-        Course createdCourse = courseService.createCourse(course);
-        return ResponseEntity.ok(createdCourse);
+        if (instructor == null) {
+            return ResponseEntity.badRequest().body("Instructor not found for username: " + username);
+        }
+
+        try {
+            course.setInstructor(instructor);
+            Course createdCourse = courseService.createCourse(course);
+            return ResponseEntity.ok(createdCourse);
+        } catch (Exception e) {
+            e.printStackTrace(); // For debugging; consider using a logger in production
+            return ResponseEntity.badRequest().body("Failed to create course: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #id) ")
+    @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #id)")
     public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course course) {
         try {
             Course updatedCourse = courseService.updateCourse(id, course);
@@ -103,14 +110,12 @@ public class CourseController {
                 .body(resource);
     }
 
-    // Generate OTP for a lesson
     @PostMapping("/{courseId}/lessons/{lessonId}/generate-otp")
     @PreAuthorize("hasRole('INSTRUCTOR')")
     public ResponseEntity<Lesson> generateOtp(@PathVariable Long courseId, @PathVariable Long lessonId) {
         return ResponseEntity.ok(courseService.generateOtp(courseId, lessonId));
     }
 
-    // Validate OTP for attendance
     @PostMapping("/{courseId}/lessons/{lessonId}/validate-otp")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Boolean> validateOtp(@PathVariable Long courseId, @PathVariable Long lessonId, @RequestBody String otp) {
