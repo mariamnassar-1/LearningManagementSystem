@@ -18,16 +18,6 @@ public class InstructorController {
     CourseService courseService;
 
     //create course
-    @PostMapping("/create")
-    public ResponseEntity<Course> createCourse(@RequestBody Course course, Authentication authentication) {
-        //pass the instructor's id to the course
-        User instructor = new User();
-        instructor.setUsername(authentication.getName());
-        course.setInstructor(instructor);
-
-        Course createdCourse = courseService.createCourse(course);
-        return ResponseEntity.ok(createdCourse);
-    }
     //delete course
     //update course
     //generate OTP

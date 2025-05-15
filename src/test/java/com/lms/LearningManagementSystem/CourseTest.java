@@ -1,7 +1,5 @@
 package com.lms.LearningManagementSystem;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -10,28 +8,22 @@ import com.lms.LearningManagementSystem.controller.CourseController;
 import com.lms.LearningManagementSystem.model.Course;
 import com.lms.LearningManagementSystem.model.User;
 import com.lms.LearningManagementSystem.service.CourseService;
-import com.lms.LearningManagementSystem.service.UserService;
-import org.junit.jupiter.api.AfterEach;
+import com.lms.LearningManagementSystem.service.EnrollmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +36,7 @@ class CourseTest {
     private CourseService courseService;
 
     @Mock
-    private UserService userService;
+    private EnrollmentService enrollmentService;
 
     private MockMvc mockMvc;
 
@@ -151,7 +143,7 @@ class CourseTest {
         course.setTitle("Instructor Course");
 
         when(courseService.getCoursesByInstructor("instructor"))
-                .thenReturn(Arrays.asList(course));
+                .thenReturn(List.of(course));
 
         mockMvc.perform(get("/api/courses/instructor").principal(() -> "instructor"))
                 .andExpect(status().isOk())
@@ -167,15 +159,15 @@ class CourseTest {
         course.setId(1L);
         course.setTitle("Test Course");
 
-        when(courseService.getEnrolledCourses("student"))
-                .thenReturn(Arrays.asList(course));
+        when(enrollmentService.getEnrolledCourses("student"))
+                .thenReturn(List.of(course));
 
         mockMvc.perform(get("/api/courses/enrolled")
                         .principal(() -> "student"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Test Course"));
 
-        verify(courseService, times(1)).getEnrolledCourses("student");
+        verify(enrollmentService, times(1)).getEnrolledCourses("student");
     }
 
 
@@ -184,27 +176,28 @@ class CourseTest {
     void enrollInCourse() throws Exception {
         Long courseId = 1L;
 
-        doNothing().when(courseService).enrollStudent(courseId, "student");
+        doNothing().when(enrollmentService).enrollStudentInCourse("student", courseId);
 
         mockMvc.perform(post("/api/courses/{id}/enroll", courseId)
                         .principal(() -> "student"))
                 .andExpect(status().isOk());
 
-        verify(courseService, times(1)).enrollStudent(courseId, "student");
+        verify(enrollmentService, times(1)).enrollStudentInCourse("student", courseId);
     }
 
     @Test
     @WithMockUser(username = "student", roles = {"STUDENT"})
     void unenrollFromCourse() throws Exception {
+        Long studentId = 10L;
         Long courseId = 1L;
 
-        doNothing().when(courseService).unenrollStudent(courseId, "student");
+        doNothing().when(enrollmentService).unenrollStudent(studentId, courseId);
 
         mockMvc.perform(post("/api/courses/{id}/unenroll", courseId)
                         .principal(() -> "student"))
                 .andExpect(status().isOk());
 
-        verify(courseService, times(1)).unenrollStudent(courseId, "student");
+        verify(enrollmentService, times(1)).unenrollStudent(studentId, courseId);
     }
 
     @Test
