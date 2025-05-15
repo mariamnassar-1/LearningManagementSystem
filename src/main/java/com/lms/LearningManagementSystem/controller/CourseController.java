@@ -92,6 +92,7 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getCoursesByInstructor(username));
     }
 
+
     @PostMapping("/{courseId}/media")
     @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #courseId)")
     public ResponseEntity<Course> uploadMediaFiles(
