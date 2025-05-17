@@ -36,6 +36,7 @@ public class CourseService {
     private UserService userService;
     @Autowired
     private  NotificationService notificationService;
+
     @Value("${media.storage.path}") // Define a property in application.properties
     private String mediaStoragePath;
 
