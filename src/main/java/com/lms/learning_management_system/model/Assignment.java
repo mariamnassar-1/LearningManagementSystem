@@ -1,5 +1,6 @@
 package com.lms.learning_management_system.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -34,7 +35,15 @@ public class Assignment {
     @JoinColumn(name = "course_id", nullable = false)  // foreign key column
     private Course course;
 
+    @JsonProperty("studentName")
+    public String getStudentName() {
+        return student != null ? student.getUsername() : null;
+    }
+
     public void setStudentName(String muhammadFathi) {
-        student.setUsername(muhammadFathi);
+        if (this.student == null) {
+            this.student = new User();  // initialize student if null
+        }
+        this.student.setUsername(muhammadFathi);
     }
 }
