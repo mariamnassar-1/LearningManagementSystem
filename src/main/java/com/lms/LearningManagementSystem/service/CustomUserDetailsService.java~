@@ -1,4 +1,0 @@
-package com.lms.LearningManagementSystem.service;
-
-public class CustomUserDetailsService {
-}

@@ -1,4 +1,0 @@
-package com.lms.LearningManagementSystem.repository;
-
-public class UserRepository {
-}
