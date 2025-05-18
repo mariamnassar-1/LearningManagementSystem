@@ -23,6 +23,8 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class AuthController {
 
+    private static final String ERROR_KEY = "error";
+
     @Autowired
     private UserService userService;
 
@@ -37,11 +39,11 @@ public class AuthController {
             return ResponseEntity.ok(registeredUser);
         } catch (IllegalArgumentException e) {
             Map<String, String> response = new HashMap<>();
-            response.put("error", e.getMessage());
+            response.put(ERROR_KEY, e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
-            response.put("error", "An unexpected error occurred");
+            response.put(ERROR_KEY, "An unexpected error occurred");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -67,11 +69,11 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
             Map<String, String> response = new HashMap<>();
-            response.put("error", "Invalid username or password");
+            response.put(ERROR_KEY, "Invalid username or password");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
-            response.put("error", "An unexpected error occurred: " + e.getMessage());
+            response.put(ERROR_KEY, "An unexpected error occurred: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

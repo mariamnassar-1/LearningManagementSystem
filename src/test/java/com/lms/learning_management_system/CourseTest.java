@@ -28,6 +28,14 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class CourseTest {
+    private static final String INSTRUCTOR = "instructor";
+    private static final String STUDENT = "student";
+    private static final String TITLE_JSON_PATH = "$.title";
+    private static final String FIRST_TITLE_JSON_PATH = "$[0].title";
+    private static final String COURSE_ENDPOINT = "/api/courses/{id}";
+    private static final String COURSE_1 = "Course 1";
+    private static final String VIDEO_1 = "video1.mp4";
+    private static final String DOCUMENT_1 = "document1.pdf";
 
     @InjectMocks
     private CourseController courseController;
@@ -46,12 +54,12 @@ class CourseTest {
     }
 
     @Test
-    @WithMockUser(username = "instructor", roles = {"INSTRUCTOR"})
+    @WithMockUser(username = INSTRUCTOR, roles = {"INSTRUCTOR"})
     void createCourse() throws Exception {
         Course course = new Course();
         course.setTitle("New Course");
         User instructor = new User();
-        instructor.setUsername("instructor");
+        instructor.setUsername(INSTRUCTOR);
         course.setInstructor(instructor);
 
         when(courseService.createCourse(any(Course.class))).thenReturn(course);
@@ -60,29 +68,29 @@ class CourseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"New Course\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("New Course"));
+                .andExpect(jsonPath(TITLE_JSON_PATH).value("New Course"));
 
         verify(courseService, times(1)).createCourse(any(Course.class));
     }
 
     @Test
-    @WithMockUser(username = "instructor", roles = {"INSTRUCTOR"})
+    @WithMockUser(username = INSTRUCTOR, roles = {"INSTRUCTOR"})
     void updateCourse() throws Exception {
         Long courseId = 1L;
         Course course = new Course();
         course.setId(courseId);
         course.setTitle("Updated Course");
         User instructor = new User();
-        instructor.setUsername("instructor");
+        instructor.setUsername(INSTRUCTOR);
         course.setInstructor(instructor);
 
         when(courseService.updateCourse(eq(courseId), any(Course.class))).thenReturn(course);
 
-        mockMvc.perform(put("/api/courses/{id}", courseId)
+        mockMvc.perform(put(COURSE_ENDPOINT, courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"Updated Course\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Updated Course"));
+                .andExpect(jsonPath(TITLE_JSON_PATH).value("Updated Course"));
 
         verify(courseService, times(1)).updateCourse(eq(courseId), any(Course.class));
     }
@@ -94,7 +102,7 @@ class CourseTest {
 
         doNothing().when(courseService).deleteCourse(courseId);
 
-        mockMvc.perform(delete("/api/courses/{id}", courseId))
+        mockMvc.perform(delete(COURSE_ENDPOINT, courseId))
                 .andExpect(status().isOk());
 
         verify(courseService, times(1)).deleteCourse(courseId);
@@ -104,7 +112,7 @@ class CourseTest {
     void getAllCourses() throws Exception {
         Course course1 = new Course();
         course1.setId(1L);
-        course1.setTitle("Course 1");
+        course1.setTitle(COURSE_1);
 
         Course course2 = new Course();
         course2.setId(2L);
@@ -114,7 +122,7 @@ class CourseTest {
 
         mockMvc.perform(get("/api/courses"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Course 1"))
+                .andExpect(jsonPath(FIRST_TITLE_JSON_PATH).value(COURSE_1))
                 .andExpect(jsonPath("$[1].title").value("Course 2"));
 
         verify(courseService, times(1)).getAllCourses();
@@ -125,13 +133,13 @@ class CourseTest {
         Long courseId = 1L;
         Course course = new Course();
         course.setId(courseId);
-        course.setTitle("Course 1");
+        course.setTitle(COURSE_1);
 
         when(courseService.getCourseById(courseId)).thenReturn(Optional.of(course));
 
-        mockMvc.perform(get("/api/courses/{id}", courseId))
+        mockMvc.perform(get(COURSE_ENDPOINT, courseId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Course 1"));
+                .andExpect(jsonPath(TITLE_JSON_PATH).value(COURSE_1));
 
         verify(courseService, times(1)).getCourseById(courseId);
     }
@@ -142,51 +150,50 @@ class CourseTest {
         course.setId(1L);
         course.setTitle("Instructor Course");
 
-        when(courseService.getCoursesByInstructor("instructor"))
+        when(courseService.getCoursesByInstructor(INSTRUCTOR))
                 .thenReturn(List.of(course));
 
-        mockMvc.perform(get("/api/courses/instructor").principal(() -> "instructor"))
+        mockMvc.perform(get("/api/courses/instructor").principal(() -> INSTRUCTOR))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Instructor Course"));
+                .andExpect(jsonPath(FIRST_TITLE_JSON_PATH).value("Instructor Course"));
 
-        verify(courseService, times(1)).getCoursesByInstructor("instructor");
+        verify(courseService, times(1)).getCoursesByInstructor(INSTRUCTOR);
     }
 
     @Test
-    @WithMockUser(username = "student", roles = {"STUDENT"})
+    @WithMockUser(username = STUDENT, roles = {"STUDENT"})
     void getEnrolledCourses() throws Exception {
         Course course = new Course();
         course.setId(1L);
         course.setTitle("Test Course");
 
-        when(enrollmentService.getEnrolledCourses("student"))
+        when(enrollmentService.getEnrolledCourses(STUDENT))
                 .thenReturn(List.of(course));
 
         mockMvc.perform(get("/api/courses/enrolled")
-                        .principal(() -> "student"))
+                        .principal(() -> STUDENT))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Test Course"));
+                .andExpect(jsonPath(FIRST_TITLE_JSON_PATH).value("Test Course"));
 
-        verify(enrollmentService, times(1)).getEnrolledCourses("student");
+        verify(enrollmentService, times(1)).getEnrolledCourses(STUDENT);
     }
 
-
     @Test
-    @WithMockUser(username = "student", roles = {"STUDENT"})
+    @WithMockUser(username = STUDENT, roles = {"STUDENT"})
     void enrollInCourse() throws Exception {
         Long courseId = 1L;
 
-        doNothing().when(enrollmentService).enrollStudentInCourse("student", courseId);
+        doNothing().when(enrollmentService).enrollStudentInCourse(STUDENT, courseId);
 
         mockMvc.perform(post("/api/courses/{id}/enroll", courseId)
-                        .principal(() -> "student"))
+                        .principal(() -> STUDENT))
                 .andExpect(status().isOk());
 
-        verify(enrollmentService, times(1)).enrollStudentInCourse("student", courseId);
+        verify(enrollmentService, times(1)).enrollStudentInCourse(STUDENT, courseId);
     }
 
     @Test
-    @WithMockUser(username = "student", roles = {"STUDENT"})
+    @WithMockUser(username = STUDENT, roles = {"STUDENT"})
     void unenrollFromCourse() throws Exception {
         Long studentId = 10L;
         Long courseId = 1L;
@@ -194,7 +201,7 @@ class CourseTest {
         doNothing().when(enrollmentService).unenrollStudent(studentId, courseId);
 
         mockMvc.perform(post("/api/courses/{id}/unenroll", courseId)
-                        .principal(() -> "student"))
+                        .principal(() -> STUDENT))
                 .andExpect(status().isOk());
 
         verify(enrollmentService, times(1)).unenrollStudent(studentId, courseId);
@@ -205,12 +212,12 @@ class CourseTest {
         Long courseId = 1L;
 
         // Mock file data
-        MockMultipartFile file1 = new MockMultipartFile("files", "video1.mp4", MediaType.MULTIPART_FORM_DATA_VALUE, "Dummy video content".getBytes());
-        MockMultipartFile file2 = new MockMultipartFile("files", "document1.pdf", MediaType.MULTIPART_FORM_DATA_VALUE, "Dummy document content".getBytes());
+        MockMultipartFile file1 = new MockMultipartFile("files", VIDEO_1, MediaType.MULTIPART_FORM_DATA_VALUE, "Dummy video content".getBytes());
+        MockMultipartFile file2 = new MockMultipartFile("files", DOCUMENT_1, MediaType.MULTIPART_FORM_DATA_VALUE, "Dummy document content".getBytes());
 
         Course course = new Course();
         course.setId(courseId);
-        course.setMediaFiles(Arrays.asList("video1.mp4", "document1.pdf"));
+        course.setMediaFiles(Arrays.asList(VIDEO_1, DOCUMENT_1));
 
         when(courseService.uploadMediaFiles(eq(courseId), anyList())).thenReturn(course);
 
@@ -219,8 +226,8 @@ class CourseTest {
                         .file(file2))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(courseId))
-                .andExpect(jsonPath("$.mediaFiles[0]").value("video1.mp4"))
-                .andExpect(jsonPath("$.mediaFiles[1]").value("document1.pdf"));
+                .andExpect(jsonPath("$.mediaFiles[0]").value(VIDEO_1))
+                .andExpect(jsonPath("$.mediaFiles[1]").value(DOCUMENT_1));
 
         verify(courseService, times(1)).uploadMediaFiles(eq(courseId), anyList());
     }
