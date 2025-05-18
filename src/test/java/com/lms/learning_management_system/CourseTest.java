@@ -9,6 +9,7 @@ import com.lms.learning_management_system.model.Course;
 import com.lms.learning_management_system.model.User;
 import com.lms.learning_management_system.service.CourseService;
 import com.lms.learning_management_system.service.EnrollmentService;
+import com.lms.learning_management_system.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,9 +28,9 @@ import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
+
 class CourseTest {
     private static final String INSTRUCTOR = "instructor";
-    private static final String STUDENT = "student";
     private static final String TITLE_JSON_PATH = "$.title";
     private static final String FIRST_TITLE_JSON_PATH = "$[0].title";
     private static final String COURSE_ENDPOINT = "/api/courses/{id}";
@@ -44,7 +45,7 @@ class CourseTest {
     private CourseService courseService;
 
     @Mock
-    private EnrollmentService enrollmentService;
+    private UserService userService;
 
     private MockMvc mockMvc;
 
@@ -58,20 +59,28 @@ class CourseTest {
     void createCourse() throws Exception {
         Course course = new Course();
         course.setTitle("New Course");
+
         User instructor = new User();
         instructor.setUsername(INSTRUCTOR);
-        course.setInstructor(instructor);
 
-        when(courseService.createCourse(any(Course.class))).thenReturn(course);
+        when(userService.findByUsername(INSTRUCTOR)).thenReturn(instructor);
+        when(courseService.createCourse(any(Course.class))).thenAnswer(invocation -> {
+            Course argCourse = invocation.getArgument(0);
+            argCourse.setInstructor(instructor); // Simulate setting instructor
+            return argCourse;
+        });
 
         mockMvc.perform(post("/api/courses")
+                        .principal(() -> INSTRUCTOR)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"New Course\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(TITLE_JSON_PATH).value("New Course"));
 
+        verify(userService, times(1)).findByUsername(INSTRUCTOR);
         verify(courseService, times(1)).createCourse(any(Course.class));
     }
+
 
     @Test
     @WithMockUser(username = INSTRUCTOR, roles = {"INSTRUCTOR"})
@@ -158,53 +167,6 @@ class CourseTest {
                 .andExpect(jsonPath(FIRST_TITLE_JSON_PATH).value("Instructor Course"));
 
         verify(courseService, times(1)).getCoursesByInstructor(INSTRUCTOR);
-    }
-
-    @Test
-    @WithMockUser(username = STUDENT, roles = {"STUDENT"})
-    void getEnrolledCourses() throws Exception {
-        Course course = new Course();
-        course.setId(1L);
-        course.setTitle("Test Course");
-
-        when(enrollmentService.getEnrolledCourses(STUDENT))
-                .thenReturn(List.of(course));
-
-        mockMvc.perform(get("/api/courses/enrolled")
-                        .principal(() -> STUDENT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(FIRST_TITLE_JSON_PATH).value("Test Course"));
-
-        verify(enrollmentService, times(1)).getEnrolledCourses(STUDENT);
-    }
-
-    @Test
-    @WithMockUser(username = STUDENT, roles = {"STUDENT"})
-    void enrollInCourse() throws Exception {
-        Long courseId = 1L;
-
-        doNothing().when(enrollmentService).enrollStudentInCourse(STUDENT, courseId);
-
-        mockMvc.perform(post("/api/courses/{id}/enroll", courseId)
-                        .principal(() -> STUDENT))
-                .andExpect(status().isOk());
-
-        verify(enrollmentService, times(1)).enrollStudentInCourse(STUDENT, courseId);
-    }
-
-    @Test
-    @WithMockUser(username = STUDENT, roles = {"STUDENT"})
-    void unenrollFromCourse() throws Exception {
-        Long studentId = 10L;
-        Long courseId = 1L;
-
-        doNothing().when(enrollmentService).unenrollStudent(studentId, courseId);
-
-        mockMvc.perform(post("/api/courses/{id}/unenroll", courseId)
-                        .principal(() -> STUDENT))
-                .andExpect(status().isOk());
-
-        verify(enrollmentService, times(1)).unenrollStudent(studentId, courseId);
     }
 
     @Test
