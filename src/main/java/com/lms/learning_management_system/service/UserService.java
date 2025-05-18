@@ -13,6 +13,9 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+    private static final String USER_NOT_FOUND = "User not found";
+    private static final String USERNAME_EXISTS = "Username already exists";
+    private static final String EMAIL_EXISTS = "Email already exists";
 
     @Autowired
     private UserRepository userRepository;
@@ -35,10 +38,10 @@ public class UserService {
     // Public registration endpoint
     public User createUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new IllegalArgumentException(USERNAME_EXISTS);
         }
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException(EMAIL_EXISTS);
         }
         
         // Encode password before saving
@@ -50,7 +53,7 @@ public class UserService {
     @PreAuthorize("hasRole('ADMIN')")
     public User updateUserRole(Long id, String role) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         user.setRole(Role.valueOf(role.toUpperCase()));
         return userRepository.save(user);
     }
@@ -59,7 +62,7 @@ public class UserService {
     @PreAuthorize("#username == authentication.principal.username or hasRole('ADMIN')")
     public void updateUser(String username, User user) {
         User existingUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         
         // Don't allow role changes through this method
         user.setRole(existingUser.getRole());
@@ -76,7 +79,7 @@ public class UserService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new IllegalArgumentException("User not found");
+            throw new IllegalArgumentException(USER_NOT_FOUND);
         }
         userRepository.deleteById(id);
     }
@@ -85,7 +88,7 @@ public class UserService {
     @PreAuthorize("#username == authentication.principal.username or hasRole('ADMIN')")
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
     }
 
     // Public registration endpoint

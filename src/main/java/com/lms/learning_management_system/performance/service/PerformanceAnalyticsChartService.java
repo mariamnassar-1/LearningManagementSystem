@@ -1,23 +1,21 @@
-//package com.lms.LearningManagementSystem.service;
-//
-//import com.lms.LearningManagementSystem.model.Performance;
-//import com.lms.LearningManagementSystem.repository.PerformanceRepository;
-//import org.knowm.xchart.BitmapEncoder;
-//import org.knowm.xchart.XYChart;
-//import org.knowm.xchart.XYChartBuilder;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Service;
-//
-//import java.awt.*;
-//import java.io.ByteArrayOutputStream;
-//import java.io.IOException;
-//import java.util.List;
-//
-//@Service
-//public class PerformanceAnalyticsChartService {
-//
-//    @Autowired
-//    private PerformanceRepository performanceRepository;
+package com.lms.learning_management_system.performance.service;
+
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.awt.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+
+@Service
+public class PerformanceAnalyticsChartService {
+
+    @Autowired
+    private PerformanceRepository performanceRepository;
 //
 //    // Method to generate a performance chart (bar chart for quiz scores, assignment grades, and attendance)
 //    public byte[] generatePerformanceChart(Long courseId) throws IOException {

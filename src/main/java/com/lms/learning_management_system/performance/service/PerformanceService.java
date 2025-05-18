@@ -1,23 +1,19 @@
-//package com.lms.LearningManagementSystem.service;
-//
-//import com.lms.LearningManagementSystem.model.Performance;
-//import com.lms.LearningManagementSystem.model.Enrollment;
-//import com.lms.LearningManagementSystem.repository.PerformanceRepository;
-//import com.lms.LearningManagementSystem.repository.EnrollmentRepository;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.List;
-//
-//@Service
-//public class PerformanceService {
-//
-//    @Autowired
-//    private PerformanceRepository performanceRepository;
-//
-//    @Autowired
-//    private EnrollmentRepository enrollmentRepository;
+package com.lms.learning_management_system.performance.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class PerformanceService {
+
+    @Autowired
+    private PerformanceRepository performanceRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 //
 //    // Admin or Instructor can view all performance records
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")

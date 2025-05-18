@@ -28,7 +28,7 @@ class CustomErrorControllerTest {
     }
 
     @Test
-    void testHandleError_404() {
+    void testHandleError404() {
         // Mock the request to return a 404 status
         when(request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE))
                 .thenReturn(HttpStatus.NOT_FOUND.value());
@@ -41,7 +41,7 @@ class CustomErrorControllerTest {
     }
 
     @Test
-    void testHandleError_403() {
+    void testHandleError403() {
         // Mock the request to return a 403 status
         when(request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE))
                 .thenReturn(HttpStatus.FORBIDDEN.value());
@@ -54,7 +54,7 @@ class CustomErrorControllerTest {
     }
 
     @Test
-    void testHandleError_OtherError() {
+    void testHandleErrorOtherError() {
         // Mock the request to return a 500 status
         when(request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE))
                 .thenReturn(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -67,7 +67,7 @@ class CustomErrorControllerTest {
     }
 
     @Test
-    void testHandleError_NullStatus() {
+    void testHandleErrorNullStatus() {
         // Mock the request to return null (no status)
         when(request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE))
                 .thenReturn(null);

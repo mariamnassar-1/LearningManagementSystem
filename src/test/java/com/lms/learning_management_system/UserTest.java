@@ -20,6 +20,13 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserTest {
+    private static final String TEST_USER = "testUser";
+    private static final String TEST_EMAIL = "test@example.com";
+    private static final String TEST_PASSWORD = "password123";
+    private static final String TEST_FIRST_NAME = "Test";
+    private static final String TEST_LAST_NAME = "User";
+    private static final String USERNAME_EXISTS = "Username already exists";
+    private static final String USER_NOT_FOUND = "User not found";
 
     @Mock
     private UserService userService;
@@ -28,18 +35,16 @@ class UserTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-
-
     private User testUser;
 
     @BeforeEach
     void setUp() {
         testUser = new User();
-        testUser.setUsername("testUser");
-        testUser.setFirstName("Test");
-        testUser.setLastName("User");
-        testUser.setEmail("test@example.com");
-        testUser.setPassword("password123");
+        testUser.setUsername(TEST_USER);
+        testUser.setFirstName(TEST_FIRST_NAME);
+        testUser.setLastName(TEST_LAST_NAME);
+        testUser.setEmail(TEST_EMAIL);
+        testUser.setPassword(TEST_PASSWORD);
         testUser.setRole(User.Role.STUDENT);
         testUser.setCreatedAt(LocalDateTime.now());
         testUser.setUpdatedAt(LocalDateTime.now());
@@ -52,23 +57,22 @@ class UserTest {
         User createdUser = userService.createUser(testUser);
 
         assertNotNull(createdUser);
-        assertEquals("testUser", createdUser.getUsername());
-        assertEquals("Test", createdUser.getFirstName());
-        assertEquals("User", createdUser.getLastName());
-        assertEquals("test@example.com", createdUser.getEmail());
+        assertEquals(TEST_USER, createdUser.getUsername());
+        assertEquals(TEST_FIRST_NAME, createdUser.getFirstName());
+        assertEquals(TEST_LAST_NAME, createdUser.getLastName());
+        assertEquals(TEST_EMAIL, createdUser.getEmail());
         assertEquals(User.Role.STUDENT, createdUser.getRole());
         verify(userService, times(1)).createUser(any(User.class));
     }
 
-
     @Test
-    void testCreateUser_UsernameExists() {
+    void testCreateUserUsernameExists() {
         when(userService.createUser(any(User.class)))
-                .thenThrow(new IllegalArgumentException("Username already exists"));
+                .thenThrow(new IllegalArgumentException(USERNAME_EXISTS));
 
         Exception exception = assertThrows(IllegalArgumentException.class, () ->
                 userService.createUser(testUser));
-        assertEquals("Username already exists", exception.getMessage());
+        assertEquals(USERNAME_EXISTS, exception.getMessage());
     }
 
     @Test
@@ -79,8 +83,8 @@ class UserTest {
 
         assertNotNull(users);
         assertEquals(1, users.size());
-        assertEquals("testUser", users.get(0).getUsername());
-        assertEquals("test@example.com", users.get(0).getEmail());
+        assertEquals(TEST_USER, users.get(0).getUsername());
+        assertEquals(TEST_EMAIL, users.get(0).getEmail());
         verify(userService, times(1)).getAllUsers();
     }
 
@@ -91,8 +95,8 @@ class UserTest {
         var user = userService.getUserById(testUser.getId());
 
         assertTrue(user.isPresent());
-        assertEquals("testUser", user.get().getUsername());
-        assertEquals("test@example.com", user.get().getEmail());
+        assertEquals(TEST_USER, user.get().getUsername());
+        assertEquals(TEST_EMAIL, user.get().getEmail());
         verify(userService, times(1)).getUserById(testUser.getId());
     }
 
@@ -106,12 +110,12 @@ class UserTest {
     }
 
     @Test
-    void testDeleteUser_NotFound() {
-        doThrow(new IllegalArgumentException("User not found"))
+    void testDeleteUserNotFound() {
+        doThrow(new IllegalArgumentException(USER_NOT_FOUND))
                 .when(userService).deleteUser(1L);
 
         Exception exception = assertThrows(IllegalArgumentException.class, () ->
                 userService.deleteUser(1L));
-        assertEquals("User not found", exception.getMessage());
+        assertEquals(USER_NOT_FOUND, exception.getMessage());
     }
 }

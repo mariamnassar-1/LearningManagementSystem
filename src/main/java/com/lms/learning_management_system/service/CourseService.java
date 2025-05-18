@@ -20,9 +20,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+private static final Random RANDOM = new Random();
+
+import java.util.Random;
 
 @Service
 public class CourseService {
+    private static final String COURSE_NOT_FOUND = "Course not found";
 
     @Autowired
     private CourseRepository courseRepository;
@@ -51,7 +55,7 @@ public class CourseService {
     @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #courseId) or hasRole('ADMIN')")
     public Course updateCourse(Long courseId, Course course) {
         Course existingCourse = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COURSE_NOT_FOUND));
 
         // Preserve the original instructor
         course.setId(courseId);
@@ -68,7 +72,7 @@ public class CourseService {
     @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #courseId) or hasRole('ADMIN')")
     public void deleteCourse(Long courseId) {
         if (!courseRepository.existsById(courseId)) {
-            throw new IllegalArgumentException("Course not found");
+            throw new IllegalArgumentException(COURSE_NOT_FOUND);
         }
         courseRepository.deleteById(courseId);
     }
@@ -91,7 +95,7 @@ public class CourseService {
 
     public Course uploadMediaFiles(Long courseId, List<MultipartFile> files) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COURSE_NOT_FOUND));
 
         List<String> filePaths = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -118,7 +122,7 @@ public class CourseService {
     @PreAuthorize("hasRole('INSTRUCTOR') and @courseSecurityService.isInstructorOfCourse(authentication.principal.username, #courseId)")
     public Lesson generateOtp(Long courseId, Long lessonId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException(COURSE_NOT_FOUND));
 
         Lesson lesson = course.getLessons().stream()
                 .filter(l -> l.getId().equals(lessonId))
@@ -126,7 +130,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
         // Generate a random 6-digit OTP
-        String otp = String.format("%06d", (int)(Math.random() * 1000000));
+        String otp = String.format("%06d", RANDOM.nextInt(1000000));
         lesson.setOtp(otp);
 
         courseRepository.save(course);
@@ -136,7 +140,7 @@ public class CourseService {
     @PreAuthorize("hasRole('STUDENT') and @courseSecurityService.isEnrolledInCourse(authentication.principal.username, #courseId)")
     public boolean validateOtp(Long courseId, Long lessonId, String otp) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException(COURSE_NOT_FOUND));
 
         Lesson lesson = course.getLessons().stream()
                 .filter(l -> l.getId().equals(lessonId))
@@ -148,7 +152,7 @@ public class CourseService {
 
     public Course addLessonsToCourse(Long courseId, List<Lesson> lessons) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COURSE_NOT_FOUND));
 
         // Set the course reference for each lesson and save the lessons
         lessons.forEach(lesson -> {

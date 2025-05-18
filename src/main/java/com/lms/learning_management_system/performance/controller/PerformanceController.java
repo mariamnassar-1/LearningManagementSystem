@@ -1,23 +1,23 @@
-//package com.lms.LearningManagementSystem.controller;
-//
-//import com.lms.LearningManagementSystem.model.Performance;
-//import com.lms.LearningManagementSystem.service.PerformanceService;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.security.core.Authentication;
-//import org.springframework.web.bind.annotation.*;
-//import org.springframework.web.bind.annotation.CrossOrigin;
-//
-//import java.util.List;
-//
-//@RestController
-//@RequestMapping("/api/performances")
-//@CrossOrigin(origins = "*")
-//public class PerformanceController {
-//
-//    @Autowired
-//    private PerformanceService performanceService;
+package com.lms.learning_management_system.performance.controller;
+
+import com.lms.learning_management_system.model.Performance;
+import com.lms.learning_management_system.performance.service.PerformanceService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/performances")
+@CrossOrigin(origins = "*")
+public class PerformanceController {
+
+    @Autowired
+    private PerformanceService performanceService;
 //
 //    // Admin or Instructors can view all performance records
 //    @GetMapping
