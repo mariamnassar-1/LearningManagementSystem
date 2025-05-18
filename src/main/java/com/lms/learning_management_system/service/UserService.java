@@ -81,8 +81,6 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    // Users can find their own profiles, admins can find any profile
-    @PreAuthorize("#username == authentication.principal.username or hasRole('ADMIN')")
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

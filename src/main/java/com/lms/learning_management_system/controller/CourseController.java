@@ -14,10 +14,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -101,14 +104,26 @@ public class CourseController {
         return ResponseEntity.ok(courseService.uploadMediaFiles(courseId, files));
     }
 
-    @GetMapping("/media/{fileName}")
+    @GetMapping("/media/{fileName:.+}")
     public ResponseEntity<Resource> serveMediaFile(@PathVariable String fileName) {
-        Path filePath = Paths.get("/MediaStorage", fileName);
-        Resource resource = new FileSystemResource(filePath);
+        try {
+            Path filePath = Paths.get("MediaStorage", fileName).normalize();
+            Resource resource = new FileSystemResource(filePath);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                .body(resource);
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new NoSuchFileException("File not found: " + fileName);
+            }
+
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"").body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/{courseId}/lessons/{lessonId}/generate-otp")

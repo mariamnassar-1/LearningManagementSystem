@@ -8,6 +8,7 @@ import com.lms.learning_management_system.repository.LessonRepository;
 import com.lms.learning_management_system.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,7 +60,11 @@ public class CourseService {
         String subject = "Course Update";
         String message = "Course has been updated";
         for (String studentName : course.getEnrolledStudents()) {
-            notificationService.createNotification(userService.findByUsername(studentName), subject, message);
+            try {
+                notificationService.createNotification(userService.findByUsername(studentName), subject, message);
+            } catch (MailException e) {
+                System.out.println("failed to send notif");
+            }
         }
         return courseRepository.save(course);
     }
@@ -92,23 +97,27 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
 
-        List<String> filePaths = new ArrayList<>();
+        List<String> fileNames = new ArrayList<>();
         for (MultipartFile file : files) {
-            String filePath = saveFile(file);
-            filePaths.add(filePath);
+            String fileName = saveFile(file);
+            fileNames.add(fileName);
         }
 
-        course.getMediaFiles().addAll(filePaths);
+        course.getMediaFiles().addAll(fileNames);
         return courseRepository.save(course);
     }
 
     private String saveFile(MultipartFile file) {
         try {
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path filePath = Paths.get(mediaStoragePath, fileName);
-            Files.createDirectories(filePath.getParent()); // Ensure directory exists
+            String originalFileName = file.getOriginalFilename();
+
+            String fileName = System.currentTimeMillis() + "_" + originalFileName;
+            Path directoryPath = Paths.get(mediaStoragePath).toAbsolutePath().normalize();
+            Files.createDirectories(directoryPath); // Ensure directory exists
+
+            Path filePath = directoryPath.resolve(fileName);
             Files.write(filePath, file.getBytes());
-            return filePath.toString();
+            return fileName;
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to store file " + file.getOriginalFilename(), e);
         }
