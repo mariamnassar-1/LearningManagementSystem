@@ -114,4 +114,44 @@ class UserTest {
                 userService.deleteUser(1L));
         assertEquals("User not found", exception.getMessage());
     }
+
+
+
+//updated updateUserRole test
+
+
+    @Test
+    void testUpdateUserRole_shouldUpdateRole_whenUserExists() {
+        Long userId = 1L;
+        String newRole = "INSTRUCTOR";
+
+        User user = new User();
+        user.setId(userId);
+        user.setRole(User.Role.STUDENT);
+
+        when(userService.updateUserRole(eq(userId), eq(newRole))).thenAnswer(invocation -> {
+            user.setRole(User.Role.valueOf(newRole.toUpperCase()));
+            return user;
+        });
+
+        User updatedUser = userService.updateUserRole(userId, newRole);
+
+        assertNotNull(updatedUser);
+        assertEquals(User.Role.INSTRUCTOR, updatedUser.getRole());
+        verify(userService, times(1)).updateUserRole(eq(userId), eq(newRole));
+    }
+
+    @Test
+    void testUpdateUserRole_shouldThrowException_whenUserNotFound() {
+        Long userId = 99L;
+        String newRole = "ADMIN";
+
+        when(userService.updateUserRole(eq(userId), eq(newRole)))
+                .thenThrow(new IllegalArgumentException("User not found"));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () ->
+                userService.updateUserRole(userId, newRole));
+        assertEquals("User not found", exception.getMessage());
+        verify(userService, times(1)).updateUserRole(eq(userId), eq(newRole));
+    }
 }
